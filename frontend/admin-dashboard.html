@@ -1,0 +1,60 @@
+ <!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+</head>
+<body>
+  <h2>Admin / Teacher Attendance Dashboard</h2>
+
+  <button onclick="getAllAttendance()">View All Attendance</button>
+  <button onclick="logout()">Logout</button>
+
+  <div id="output"></div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    // Redirect if not logged in or not admin/teacher
+    if (!token || !(role === "admin" || role === "teacher")) {
+      window.location.href = "index.html";
+    }
+
+    async function getAllAttendance() {
+      const res = await fetch("http://localhost:5000/api/attendance/all", {
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        renderAttendance(data);
+      } else {
+        document.getElementById("output").innerText = data.message;
+      }
+    }
+
+    function renderAttendance(records) {
+      let html = "<table border='1'><tr><th>Student</th><th>Email</th><th>Date</th><th>Status</th></tr>";
+      records.forEach(r => {
+        html += `<tr>
+          <td>${r.student.name}</td>
+          <td>${r.student.email}</td>
+          <td>${new Date(r.date).toLocaleString()}</td>
+          <td>${r.status}</td>
+        </tr>`;
+      });
+      html += "</table>";
+      document.getElementById("output").innerHTML = html;
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
